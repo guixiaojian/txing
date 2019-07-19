@@ -34,11 +34,11 @@
     </bean>
 
     <mvc:annotation-driven />
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+   <!-- <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/view/" />
         <property name="suffix" value=".html" />
     </bean>
-
+-->
     <!--<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="viewClass" value="org.pb.base.servlet.HtmlResourceView"/>
         <property name="prefix" value="/WEB-INF/view/" />
@@ -92,6 +92,7 @@
           class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
         <property name="contentType" value="text/html;charset=utf-8" />
         <property name="exposeRequestAttributes" value="true" />
+        <property name="requestContextAttribute" value="request" />
         <property name="cache" value="true" />
         <property name="prefix" value="" />
         <property name="suffix" value=".html" />
