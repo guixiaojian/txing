@@ -3,6 +3,7 @@ package com.tx.controller;
 import com.tx.service.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("login")
@@ -13,9 +14,10 @@ public class LoginController {
 	private LoginService loginService;
 
 	@RequestMapping("toLogin")
-	public String login(){
+	public String login(Model model){
 		boolean login = loginService.login("15111509329", "123456");
 		System.out.println(login);
+		model.addAttribute("name","桂某人");
 		return "login";
 	}
 

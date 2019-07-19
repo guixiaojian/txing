@@ -35,12 +35,20 @@
 
     <mvc:annotation-driven />
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/jsp/" />
-        <property name="suffix" value=".jsp" />
+        <property name="prefix" value="/WEB-INF/view/" />
+        <property name="suffix" value=".html" />
     </bean>
+
+    <!--<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass" value="org.pb.base.servlet.HtmlResourceView"/>
+        <property name="prefix" value="/WEB-INF/view/" />
+        <property name="suffix" value=".html" />
+    </bean>-->
 
     <!-- 资源映射 , 加载静态资源-->
     <mvc:resources location="/js/" mapping="/js/**"/>
+    <mvc:resources location="/img/" mapping="/img/**"/>
+    <mvc:resources location="/css/" mapping="/css/**"/>
 
     <!--拦截器注册 -->
     <mvc:interceptors>
@@ -66,4 +74,26 @@
             <bean class="com.tx.interceptor.DefaultInteceptor"></bean>
         </mvc:interceptor>-->
     </mvc:interceptors>
+
+    <!-- freemarker -->
+    <bean id="freeMarkerConfig"
+          class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+        <property name="templateLoaderPath" value="/WEB-INF/view/" />
+        <property name="freemarkerSettings">
+            <props>
+                <prop key="output_encoding">UTF-8</prop>
+                <prop key="default_encoding">UTF-8</prop>
+                <prop key="number_format">#</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="freeMarkerResolver"
+          class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <property name="contentType" value="text/html;charset=utf-8" />
+        <property name="exposeRequestAttributes" value="true" />
+        <property name="cache" value="true" />
+        <property name="prefix" value="" />
+        <property name="suffix" value=".html" />
+    </bean>
 </beans>

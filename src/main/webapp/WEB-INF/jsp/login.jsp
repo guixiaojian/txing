@@ -12,5 +12,13 @@
 </head>
 <body>
         hello
+
 </body>
+<script>
+    var ctx = "${guixiaojian}";
+    console.log(ctx);
+    console.log(12312);
+</script>
+
+<script type="text/javascript" src="${js}/login/login.js"></script>
 </html>
