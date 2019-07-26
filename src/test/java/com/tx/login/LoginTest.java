@@ -1,6 +1,5 @@
 package com.tx.login;
 
-import com.tx.dao.LoginMapper;
 import com.tx.service.LoginService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,7 +1,7 @@
 package com.tx.service;
 
+import com.tx.model.pojo.User;
+
 public interface LoginService {
-	
-	boolean login(String account , String passWord);
-	
+	User login(String account , String passWord);
 }
