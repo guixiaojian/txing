@@ -1,5 +1,6 @@
 package com.tx.login;
 
+import com.tx.model.pojo.User;
 import com.tx.service.LoginService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,8 @@ public class LoginTest extends AbstractJUnit4SpringContextTests {
 
 	@Test
 	public void loginTest2(){
-		boolean login = loginService.login("15111509331", "123456");
-		if(login){
+		User login = loginService.login("15111509331", "123456");
+		if(login != null){
 			System.out.println("wosho nibabab");
 		}
 	}

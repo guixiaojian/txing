@@ -14,6 +14,7 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.apache.shiro.util.ByteSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,13 +52,17 @@ public class UserRealm extends AuthorizingRealm {
 		User user = userService.queryUserByUserName(userName);
 		if(user == null){
 			LOG.error("用户不存在！");
+			throw new UnknownAccountException("用户不存在");
 		}
 
+		if (Boolean.TRUE.equals(user.getLocked())) {
+			throw new LockedAccountException("用户已被禁用"); //账号锁定
+		}
 
 		// 获取到的用户交给AuthenticationRealm使用CredentialsMatcher进行密码匹配
+		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user,user.getPassword(), ByteSource.Util.bytes(user.getCredentialsSalt()),  getName());
 
-
-		return null;
+		return authenticationInfo;
 	}
 
 }
