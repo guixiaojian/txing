@@ -19,6 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
+import java.util.List;
+
 public class UserRealm extends AuthorizingRealm {
 
 	private static final Logger LOG = LoggerFactory.getLogger(UserRealm.class);
@@ -35,7 +38,17 @@ public class UserRealm extends AuthorizingRealm {
 	 * 授权
 	 */
 	protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+
+		LOG.info("开始授权");
+
 		SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
+
+		String username = (String) principals.getPrimaryPrincipal();
+
+		/*Set<String> role = new HashSet<String>();
+		List<Role> roles = userService.findRoles(username);*/
+
+		LOG.info("结束授权");
 		return authorizationInfo;
 	}
 
@@ -43,13 +56,15 @@ public class UserRealm extends AuthorizingRealm {
 	 * 认证
 	 */
 	protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+
 		LOG.info("开始认证");
 
 		// 获取用户名
-		String userName = (String) token.getPrincipal();
-
+ 		String userName = (String) token.getPrincipal();
+		String password = new String((char[]) token.getCredentials());
 		// 根据用户名获取用户
 		User user = userService.queryUserByUserName(userName);
+
 		if(user == null){
 			LOG.error("用户不存在！");
 			throw new UnknownAccountException("用户不存在");
@@ -60,8 +75,13 @@ public class UserRealm extends AuthorizingRealm {
 		}
 
 		// 获取到的用户交给AuthenticationRealm使用CredentialsMatcher进行密码匹配
-		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(user,user.getPassword(), ByteSource.Util.bytes(user.getCredentialsSalt()),  getName());
+		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(
+				user,
+				password,
+				ByteSource.Util.bytes(user.getCredentialsSalt()),
+				getName());
 
+		LOG.info("认证结束");
 		return authenticationInfo;
 	}
 

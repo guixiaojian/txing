@@ -6,6 +6,9 @@
        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+
+
+
     <!-- 1、Shiro的Web过滤器 -->
     <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
         <!-- Shiro的安全管理器，所有关于安全的操作都会经过SecurityManager -->
@@ -30,7 +33,7 @@
                 /css/** = anon
                 <!-- 登录页面不拦截 -->
                 /login.html = anon
-                /login.do = anon
+                /toLogin = anon
 
                 <!-- Shiro提供了退出登录的配置`logout`，会生成路径为`/logout`的请求地址，访问这个地址即会退出当前账户并清空缓存 -->
                 /logout = logout
@@ -56,11 +59,44 @@
 
     <!-- 2、安全管理器 -->
     <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="cacheManager" ref="cacheManager"/>
         <property name="realm" ref="userRealm"/>
+        <property name="sessionManager" ref="sessionManager"/>
     </bean>
 
-    <!-- 3、Realm实现 -->
-    <bean id="userRealm" class="com.tx.realm.UserRealm"></bean>
+    <!-- 3、会话管理器 -->
+    <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <!-- session的失效时长（24小时），单位毫秒 -->
+        <property name="globalSessionTimeout" value="86400000"/>
+        <!-- 删除失效的session -->
+        <property name="deleteInvalidSessions" value="true"/>
+    </bean>
+
+    <!-- 4、Realm实现 -->
+    <bean id="userRealm" class="com.tx.realm.UserRealm">
+        <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+    </bean>
+
+
+    <!-- 缓存管理器
+        授权管理时候，每一次授权判断都会重新到数据库中查询一次用户对应button内心的权限
+     -->
+   <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:shiro-ehcache.xml"/>
+    </bean>
+
+    <!--<bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <property name="cacheManagerConfigFile" value="classpath:spring/ehcache.xml"/>
+    </bean>-->
+
+
+    <!-- 凭证匹配器 -->
+    <bean id="credentialsMatcher"
+          class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+        <property name="hashAlgorithmName" value="md5" />
+        <property name="hashIterations" value="2" />
+    </bean>
 
     <!-- Shiro生命周期处理器-->
     <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
