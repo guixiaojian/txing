@@ -54,7 +54,7 @@
         <property name="passwordParam" value="password"/>
         <property name="loginUrl" value="/login.html"/>
         <!-- rememberMeParam是rememberMe请求参数名，请求参数是boolean类型，true表示记住我 -->
-        <!--<property name="rememberMeParam" value="rememberMe"/>-->
+        <property name="rememberMeParam" value="rememberMe"/>
     </bean>
 
     <!-- 2、安全管理器 -->
@@ -62,20 +62,42 @@
         <property name="cacheManager" ref="cacheManager"/>
         <property name="realm" ref="userRealm"/>
         <property name="sessionManager" ref="sessionManager"/>
+        <property name="rememberMeManager" ref="rememberMeManager"/>
     </bean>
 
     <!-- 3、会话管理器 -->
     <bean id="sessionManager" class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
         <!-- session的失效时长（24小时），单位毫秒 -->
-        <property name="globalSessionTimeout" value="86400000"/>
+        <!--<property name="globalSessionTimeout" value="86400000"/>-->
+
+        <property name="globalSessionTimeout" value="300000"/> <!-- 5分钟 -->
         <!-- 删除失效的session -->
         <property name="deleteInvalidSessions" value="true"/>
+        <!-- 会话验证是否启用 -->
+        <property name="sessionValidationSchedulerEnabled" value="true"/>
+
+        <!-- 会话持久化sessionDao -->
+        <property name="sessionDAO" ref="sessionDAO"/>
+        <!-- 是否启用sessionIdCookie，默认是启用的 -->
+        <property name="sessionIdCookieEnabled" value="true"/>
+        <!-- 会话Cookie -->
+        <property name="sessionIdCookie" ref="sessionIdCookie"/>
     </bean>
 
     <!-- 4、Realm实现 -->
     <bean id="userRealm" class="com.tx.realm.UserRealm">
         <!-- 将凭证匹配器设置到realm中，realm按照凭证匹配器的要求进行散列 -->
         <property name="credentialsMatcher" ref="credentialsMatcher"/>
+        <!-- 是否启用缓存 -->
+        <property name="cachingEnabled" value="true"/>
+        <!-- 是否启用身份验证缓存 -->
+        <property name="authenticationCachingEnabled" value="true"/>
+        <!-- 缓存AuthenticationInfo信息的缓存名称 -->
+        <property name="authenticationCacheName" value="authenticationCache"/>
+        <!-- 是否启用授权缓存，缓存AuthorizationInfo信息 -->
+        <property name="authorizationCachingEnabled" value="true"/>
+        <!-- 缓存AuthorizationInfo信息的缓存名称 -->
+        <property name="authorizationCacheName" value="authorizationCache"/>
     </bean>
 
 
@@ -92,12 +114,54 @@
 
 
     <!-- 凭证匹配器 -->
-    <bean id="credentialsMatcher"
-          class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+    <bean id="credentialsMatcher" class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
         <property name="hashAlgorithmName" value="md5" />
         <property name="hashIterations" value="2" />
     </bean>
 
     <!-- Shiro生命周期处理器-->
     <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!-- shiro 异常解析 -->
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <!-- 错误异常转发页面 -->
+                <prop key="org.apache.shiro.authz.UnauthorizedException">/unauthorized</prop>
+                <prop key="org.apache.shiro.authz.UnauthenticatedException">/unauthenticated</prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- 配置remember me 登录之后， 关掉浏览器，再次打开浏览器访问页面时，记住上次的登录状态-->
+
+    <!-- 会话Cookie模板 -->
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg value="sid"/>
+        <!-- 如果设置为true，则客户端不会暴露给服务端脚本代码，有助于减少某些类型的跨站脚本攻击 -->
+        <property name="httpOnly" value="true"/>
+        <property name="maxAge" value="-1"/><!-- maxAge=-1表示浏览器关闭时失效此Cookie -->
+    </bean>
+    <bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg value="rememberMe"/>
+        <property name="httpOnly" value="true"/>
+        <property name="maxAge" value="2592000"/><!-- 30天 -->
+    </bean>
+
+    <!-- rememberMe管理器 -->
+    <bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <!-- cipherKey是加密rememberMe Cookie的密匙，默认AES算法 -->
+        <property name="cipherKey" value="#{T(org.apache.shiro.codec.Base64).decode('4AvVhmFLUs0KTA3Kprsdag==')}"/>
+        <property name="cookie" ref="rememberMeCookie"/>
+    </bean>
+
+    <!-- 会话DAO -->
+    <bean id="sessionDAO" class="org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO">
+        <!-- 设置session缓存的名称，默认就是shiro-activeSessionCache -->
+        <property name="activeSessionsCacheName" value="shiro-activeSessionCache"/>
+        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+    </bean>
+
+    <!-- 会话ID生成器，用于生成会话的ID，使用JavaScript的UUID生成 -->
+    <bean id="sessionIdGenerator" class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
 </beans>

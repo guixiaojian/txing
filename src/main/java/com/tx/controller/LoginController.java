@@ -10,6 +10,7 @@ import org.apache.shiro.authc.IncorrectCredentialsException;
 import org.apache.shiro.authc.LockedAccountException;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -36,7 +37,8 @@ public class LoginController {
 	 * @return
 	 */
 	@RequestMapping("toLogin")
-	public String login(String username , String password , Model model){
+	/*@RequiresRoles(value = {"admin"})*/
+	public String login(String username , String password , String remember ,Model model){
 
 		System.out.println("登陆用户输入的用户名：" + username + "，密码：" + password);
 
@@ -47,11 +49,28 @@ public class LoginController {
 			//初始化
 			Subject subject = SecurityUtils.getSubject();
 			UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+
+			//说明选择了记住我
+			if (remember != null){
+				if (remember.equals("on")) {
+					token.setRememberMe(true);
+				} else {
+					token.setRememberMe(false);
+				}
+			}else{
+				token.setRememberMe(false);
+			}
+
 			try {
 				//登录，即身份校验，由通过Spring注入的UserRealm会自动校验输入的用户名和密码在数据库中是否有对应的值
 				subject.login(token);
 				System.out.println("用户是否登录：" + subject.isAuthenticated());
-				return "redirect:hello";
+
+				Subject sub = SecurityUtils.getSubject();
+				boolean remembered = subject.isRemembered();
+				boolean authenticated = sub.isAuthenticated();
+
+				return "hello";
 			} catch (UnknownAccountException e) {
 				e.printStackTrace();
 				error = "用户账户不存在，错误信息：" + e.getMessage();
@@ -72,6 +91,7 @@ public class LoginController {
 				error = "未知错误，错误信息：" + e.getMessage();
 			}
 		}
+
 		model.addAttribute("message",error);
 		return "hello";
 	}

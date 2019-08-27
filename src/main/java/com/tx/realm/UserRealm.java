@@ -1,8 +1,12 @@
 package com.tx.realm;
 
 import com.sun.tools.internal.xjc.reader.xmlschema.bindinfo.BIConversion;
+import com.tx.model.pojo.Permission;
+import com.tx.model.pojo.Role;
 import com.tx.model.pojo.User;
 import com.tx.service.LoginService;
+import com.tx.service.PermissionService;
+import com.tx.service.RoleService;
 import com.tx.service.UserService;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -21,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class UserRealm extends AuthorizingRealm {
 
@@ -28,6 +33,12 @@ public class UserRealm extends AuthorizingRealm {
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private RoleService roleService;
+
+	@Autowired
+	private PermissionService permissionService;
 
 	@Override
 	public String getName() {
@@ -45,8 +56,17 @@ public class UserRealm extends AuthorizingRealm {
 
 		String username = (String) principals.getPrimaryPrincipal();
 
-		/*Set<String> role = new HashSet<String>();
-		List<Role> roles = userService.findRoles(username);*/
+		//获取角色
+		Set<String> roleSet = new HashSet<String>();
+		List<Role> roles = roleService.findRoleByUsername(username);
+		roles.forEach(role -> roleSet.add(role.getRole()));
+		authorizationInfo.setRoles(roleSet);
+
+		// 获取权限
+		Set<String> permissionSet = new HashSet<String>();
+		List<Permission> permissions = permissionService.findPermissions(username);
+		permissions.forEach(permission -> permissionSet.add(permission.getPermission()));
+		authorizationInfo.setStringPermissions(permissionSet);
 
 		LOG.info("结束授权");
 		return authorizationInfo;
@@ -77,7 +97,7 @@ public class UserRealm extends AuthorizingRealm {
 		// 获取到的用户交给AuthenticationRealm使用CredentialsMatcher进行密码匹配
 		SimpleAuthenticationInfo authenticationInfo = new SimpleAuthenticationInfo(
 				user,
-				password,
+				user.getPassword(),
 				ByteSource.Util.bytes(user.getCredentialsSalt()),
 				getName());
 

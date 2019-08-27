@@ -52,6 +52,6 @@
 		<table schema="" tableName="tb_roles"></table>
 		<table schema="" tableName="tb_users"></table> -->
 
-		<table tableName="sys_users" domainObjectName="User"></table>
+		<table tableName="sys_users_roles" domainObjectName="UserRole"></table>
 	</context>
 </generatorConfiguration>
